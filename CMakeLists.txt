@@ -87,6 +87,7 @@ endif()
 add_library(os3_util STATIC
     src/os3/util/sf-node.cpp
     src/os3/util/sf-number.cpp
+    src/os3/util/t2-calendar.cpp
     src/os3/util/unique-id.cpp
 )
 add_library(os3::util ALIAS os3_util)
@@ -129,6 +130,7 @@ if(BUILD_TESTING AND PROJECT_IS_TOP_LEVEL)
     add_executable(util_test
         test/test-sf-node-init.cpp
         test/test-sf-number.cpp
+        test/test-t2-calendar.cpp
         test/test-unique-id.cpp
     )
     target_link_libraries(util_test PRIVATE os3::util Catch2::Catch2WithMain util_warnings)
