@@ -104,11 +104,13 @@ namespace os3::util
   e_date t2_calendar::add_business_days(year_month_day date, int count)
   {
     if (! date.ok())
-      return std::unexpected(err_data{.code = t2_err_code::invalid_date,
-                                      .msg  = fmt::format("invalid date {}-{:02}-{:02}",
-                                                          static_cast<int>(date.year()),
-                                                          static_cast<unsigned>(date.month()),
-                                                          static_cast<unsigned>(date.day()))});
+      return std::unexpected(err_data{
+        .code = t2_err_code::invalid_date,
+        .msg  = fmt::format("invalid date {}-{:02}-{:02}",
+                            static_cast<int>(date.year()),
+                            static_cast<unsigned>(date.month()),
+                            static_cast<unsigned>(date.day())),
+      });
     sys_days   current{date};
     const days step{count >= 0 ? 1 : -1};
     for (int remaining = count >= 0 ? count : -count; remaining > 0;)
