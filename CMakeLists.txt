@@ -106,6 +106,31 @@ if(ENABLE_COVERAGE)
 endif()
 
 # ===================================================================
+# util_xml library - os3::util classes on top of Xerces-C (x_str, xerces_mgr)
+# ===================================================================
+find_package(XercesC QUIET)
+if(XercesC_FOUND)
+    add_library(os3_util_xml STATIC
+        src/os3/util/x-str.cpp
+        src/os3/util/xerces-mgr.cpp
+    )
+    add_library(os3::util_xml ALIAS os3_util_xml)
+
+    target_include_directories(os3_util_xml PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+    target_link_libraries(os3_util_xml
+        PUBLIC  XercesC::XercesC fmt::fmt
+        PRIVATE util_warnings
+    )
+    if(CMAKE_BUILD_TYPE STREQUAL "Profile")
+        target_compile_options(os3_util_xml PRIVATE -O3 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls)
+    endif()
+    if(ENABLE_COVERAGE)
+        target_compile_options(os3_util_xml PRIVATE ${UTIL_COVERAGE_COMPILE_FLAGS})
+        target_link_options(os3_util_xml PRIVATE ${UTIL_COVERAGE_LINK_FLAGS})
+    endif()
+endif()
+
+# ===================================================================
 # clang-tidy
 # ===================================================================
 find_program(RUN_CLANG_TIDY_EXECUTABLE NAMES run-clang-tidy run-clang-tidy.py)
@@ -150,6 +175,29 @@ if(BUILD_TESTING AND PROJECT_IS_TOP_LEVEL)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         PROPERTIES LABELS "unit"
     )
+
+    if(XercesC_FOUND)
+        add_executable(util_xml_test
+            test/test-x-str.cpp
+            test/test-x-str-utf.cpp
+            test/test-xerces-mgr.cpp
+        )
+        target_link_libraries(util_xml_test PRIVATE os3::util_xml Catch2::Catch2WithMain util_warnings)
+        if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND ENABLE_SANITIZERS)
+            target_compile_options(util_xml_test PRIVATE -fsanitize=address,undefined,leak -fno-omit-frame-pointer -g3 -O1)
+            target_link_options(util_xml_test PRIVATE -fsanitize=address,undefined,leak)
+        elseif(CMAKE_BUILD_TYPE STREQUAL "Profile")
+            target_compile_options(util_xml_test PRIVATE -O3 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls)
+        endif()
+        if(ENABLE_COVERAGE)
+            target_compile_options(util_xml_test PRIVATE ${UTIL_COVERAGE_COMPILE_FLAGS})
+            target_link_options(util_xml_test PRIVATE ${UTIL_COVERAGE_LINK_FLAGS})
+        endif()
+        catch_discover_tests(util_xml_test
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            PROPERTIES LABELS "unit"
+        )
+    endif()
 
     if(ENABLE_COVERAGE)
         find_program(GCOVR_EXECUTABLE gcovr REQUIRED)
